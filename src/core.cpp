@@ -92,9 +92,6 @@ Core::Core(Camera* cam, QThread *CoreThread, QString loadPath) :
 
 Core::~Core()
 {
-    clearPassword(Core::ptMain);
-    clearPassword(Core::ptHistory);
-
     if (tox)
     {
         toxav_kill(toxav);
