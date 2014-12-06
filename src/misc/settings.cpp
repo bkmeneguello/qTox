@@ -223,13 +223,28 @@ void Settings::load()
 
     loaded = true;
 
-    if (currentProfile.isEmpty()) // new profile in Core::switchConfiguration
-        return;
+    if (!currentProfile.isEmpty()) // new profile in Core::switchConfiguration
+    {
+        // load from a profile specific friend data list if possible
+        QString tmp = dir.filePath(currentProfile + ".ini");
+        if (QFile(tmp).exists()) // otherwise, filePath remains the global file
+            filePath = tmp;
 
-    // load from a profile specific friend data list if possible
-    QString tmp = dir.filePath(currentProfile + ".ini");
-    if (QFile(tmp).exists())
-        filePath = tmp;
+        QSettings ps(filePath, QSettings::IniFormat);
+        friendLst.clear();
+        ps.beginGroup("Friends");
+            int size = ps.beginReadArray("Friend");
+            for (int i = 0; i < size; i ++)
+            {
+                ps.setArrayIndex(i);
+                friendProp fp;
+                fp.addr = ps.value("addr").toString();
+                fp.alias = ps.value("alias").toString();
+                fp.autoAcceptDir = ps.value("autoAcceptDir").toString();
+                friendLst[ToxID::fromString(fp.addr).publicKey] = fp;
+            }
+            ps.endArray();
+        ps.endGroup();
 
     QSettings fs(filePath, QSettings::IniFormat);
     friendLst.clear();
@@ -248,13 +263,13 @@ void Settings::load()
     fs.endGroup();
 }
 
-void Settings::save(bool writeFriends)
+void Settings::save(bool writePersonal)
 {
     QString filePath = QDir(getSettingsDirPath()).filePath(FILENAME);
-    save(filePath, writeFriends);
+    save(filePath, writePersonal);
 }
 
-void Settings::save(QString path, bool writeFriends)
+void Settings::save(QString path, bool writePersonal)
 {
     qDebug() << "Settings: Saving in "<<path;
 
@@ -344,8 +359,22 @@ void Settings::save(QString path, bool writeFriends)
         s.setValue("filterAudio", filterAudio);
     s.endGroup();
 
-    if (!writeFriends || currentProfile.isEmpty()) // Core::switchConfiguration
-        return;
+    if (writePersonal && !currentProfile.isEmpty()) // Core::switchConfiguration
+    {
+        QSettings ps(QFileInfo(path).dir().filePath(currentProfile + ".ini"), QSettings::IniFormat);
+        ps.beginGroup("Friends");
+            ps.beginWriteArray("Friend", friendLst.size());
+            int index = 0;
+            for (auto& frnd : friendLst)
+            {
+                ps.setArrayIndex(index);
+                ps.setValue("addr", frnd.addr);
+                ps.setValue("alias", frnd.alias);
+                ps.setValue("autoAcceptDir", frnd.autoAcceptDir);
+                index++;
+            }
+            ps.endArray();
+        ps.endGroup();
 
     QSettings fs(QFileInfo(path).dir().filePath(currentProfile + ".ini"), QSettings::IniFormat);
     fs.beginGroup("Friends");
