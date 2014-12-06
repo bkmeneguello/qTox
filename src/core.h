@@ -277,6 +277,8 @@ private:
 
     void checkLastOnline(int friendId);
 
+    void deadifyTox();
+
 private slots:
      void onFileTransferFinished(ToxFile file);
 

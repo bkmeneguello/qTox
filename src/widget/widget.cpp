@@ -385,7 +385,7 @@ QString Widget::detectProfile()
     QString path, profile = Settings::getInstance().getCurrentProfile();
     path = dir.filePath(profile + Core::TOX_EXT);
     QFile file(path);
-    if (profile == "" || !file.exists())
+    if (profile.isEmpty() || !file.exists())
     {
         Settings::getInstance().setCurrentProfile("");
 #if 1 // deprecation attempt
@@ -400,10 +400,10 @@ QString Widget::detectProfile()
 #endif
         {
             profile = askProfiles();
-            if (profile != "")
-                return dir.filePath(profile + Core::TOX_EXT);
-            else
+            if (profile.isEmpty())
                 return "";
+            else
+                return dir.filePath(profile + Core::TOX_EXT);
         }
     }
     else
