@@ -195,13 +195,6 @@ void Settings::load()
         splitterState = s.value("splitterState", QByteArray()).toByteArray();
     s.endGroup();
 
-    s.beginGroup("Privacy");
-        typingNotification = s.value("typingNotification", true).toBool();
-        enableLogging = s.value("enableLogging", false).toBool();
-        encryptLogs = s.value("encryptLogs", false).toBool();
-        encryptTox = s.value("encryptTox", false).toBool();
-    s.endGroup();
-
     s.beginGroup("Audio");
         inDev = s.value("inDev", "").toString();
         outDev = s.value("outDev", "").toString();
@@ -253,21 +246,13 @@ void Settings::load()
             ps.endArray();
         ps.endGroup();
 
-    QSettings fs(filePath, QSettings::IniFormat);
-    friendLst.clear();
-    fs.beginGroup("Friends");
-        int size = fs.beginReadArray("Friend");
-        for (int i = 0; i < size; i ++)
-        {
-            fs.setArrayIndex(i);
-            friendProp fp;
-            fp.addr = fs.value("addr").toString();
-            fp.alias = fs.value("alias").toString();
-            fp.autoAcceptDir = fs.value("autoAcceptDir").toString();
-            friendLst[ToxID::fromString(fp.addr).publicKey] = fp;
-        }
-        fs.endArray();
-    fs.endGroup();
+        ps.beginGroup("Privacy");
+            typingNotification = ps.value("typingNotification", true).toBool();
+            enableLogging = ps.value("enableLogging", false).toBool();
+            encryptLogs = ps.value("encryptLogs", false).toBool();
+            encryptTox = ps.value("encryptTox", false).toBool();
+        ps.endGroup();
+    }
 }
 
 void Settings::save(bool writePersonal)
@@ -353,13 +338,6 @@ void Settings::save(QString path, bool writePersonal)
         s.setValue("splitterState", splitterState);
     s.endGroup();
 
-    s.beginGroup("Privacy");
-        s.setValue("typingNotification", typingNotification);
-        s.setValue("enableLogging", enableLogging);
-        s.setValue("encryptLogs", encryptLogs);
-        s.setValue("encryptTox", encryptTox);
-    s.endGroup();
-
     s.beginGroup("Audio");
         s.setValue("inDev", inDev);
         s.setValue("outDev", outDev);
@@ -383,20 +361,13 @@ void Settings::save(QString path, bool writePersonal)
             ps.endArray();
         ps.endGroup();
 
-    QSettings fs(QFileInfo(path).dir().filePath(currentProfile + ".ini"), QSettings::IniFormat);
-    fs.beginGroup("Friends");
-        fs.beginWriteArray("Friend", friendLst.size());
-        int index = 0;
-        for (auto& frnd : friendLst)
-        {
-            fs.setArrayIndex(index);
-            fs.setValue("addr", frnd.addr);
-            fs.setValue("alias", frnd.alias);
-            fs.setValue("autoAcceptDir", frnd.autoAcceptDir);
-            index++;
-        }
-        fs.endArray();
-    fs.endGroup();
+        ps.beginGroup("Privacy");
+            ps.setValue("typingNotification", typingNotification);
+            ps.setValue("enableLogging", enableLogging);
+            ps.setValue("encryptLogs", encryptLogs);
+            ps.setValue("encryptTox", encryptTox);
+        ps.endGroup();
+    }
 }
 
 QString Settings::getSettingsDirPath()

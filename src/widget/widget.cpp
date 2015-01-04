@@ -32,7 +32,6 @@
 #include "form/chatform.h"
 #include "maskablepixmapwidget.h"
 #include "src/historykeeper.h"
-#include "form/inputpassworddialog.h"
 #include "src/autoupdate.h"
 #include "src/audio.h"
 #include "src/platform/timer.h"
@@ -241,7 +240,6 @@ void Widget::init()
     connect(core, &Core::emptyGroupCreated, this, &Widget::onEmptyGroupCreated);
     connect(core, &Core::avInvite, this, &Widget::playRingtone);
     connect(core, &Core::blockingClearContacts, this, &Widget::clearContactsList, Qt::BlockingQueuedConnection);
-    connect(core, &Core::blockingGetPassword, this, &Widget::getPassword, Qt::BlockingQueuedConnection);
     connect(core, &Core::friendTypingChanged, this, &Widget::onFriendTypingChanged);
 
     connect(core, SIGNAL(messageSentResult(int,QString,int)), this, SLOT(onMessageSendResult(int,QString,int)));
@@ -1168,19 +1166,7 @@ void Widget::onGroupSendResult(int groupId, const QString& message, int result)
         g->getChatForm()->addSystemInfoMessage(tr("Message failed to send"), "red", QDateTime::currentDateTime());
 }
 
-void Widget::getPassword(QString info, int passtype, uint8_t* salt)
-{
-    Core::PasswordType pt = static_cast<Core::PasswordType>(passtype);
-    InputPasswordDialog dialog(info);
-    if (dialog.exec())
-    {
-        QString pswd = dialog.getPassword();
-        if (pswd.isEmpty())
-            core->clearPassword(pt);
-        else
-            core->setPassword(pswd, pt, salt);
-    }
-}
+
 
 void Widget::onFriendTypingChanged(int friendId, bool isTyping)
 {
